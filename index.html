@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Notes</title>
+</head>
+<body>
+  <h1>My Notes</h1>
+  <input id="noteText" placeholder="Write a note">
+  <button onclick="addNote()">Add</button>
+  <ul id="notesList"></ul>
+
+  <script>
+    async function loadNotes() {
+      const response = await fetch("/notes");
+      const notes = await response.json();
+      const list = document.getElementById("notesList");
+      list.innerHTML = "";
+      for (const note of notes) {
+        const item = document.createElement("li");
+        item.textContent = note.text + " ";
+
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.onclick = () => editNote(note.id, note.text);
+        item.appendChild(editButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = () => deleteNote(note.id);
+        item.appendChild(deleteButton);
+
+        list.appendChild(item);
+      }
+    }
+
+    async function addNote() {
+      const input = document.getElementById("noteText");
+      await fetch("/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: input.value })
+      });
+      input.value = "";
+      loadNotes();
+    }
+
+    async function editNote(id, currentText) {
+      const newText = prompt("Edit your note:", currentText);
+      if (newText === null || newText.trim() === "") return;
+      await fetch("/notes/" + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: newText })
+      });
+      loadNotes();
+    }
+
+    async function deleteNote(id) {
+      await fetch("/notes/" + id, { method: "DELETE" });
+      loadNotes();
+    }
+
+    loadNotes();
+  </script>
+</body>
+</html>
