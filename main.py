@@ -1,10 +1,10 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi import HTTPException
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import declarative_base, sessionmaker
 from fastapi.responses import FileResponse
-import os
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./app.db")
 
