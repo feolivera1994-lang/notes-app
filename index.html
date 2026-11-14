@@ -5,13 +5,74 @@
 </head>
 <body>
   <h1>My Notes</h1>
-  <input id="noteText" placeholder="Write a note">
-  <button onclick="addNote()">Add</button>
-  <ul id="notesList"></ul>
+
+  <div id="authSection">
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="signup()">Sign up</button>
+    <button onclick="login()">Log in</button>
+    <p id="authMessage"></p>
+  </div>
+
+  <div id="notesSection" style="display: none;">
+    <p>Logged in as <b id="currentUser"></b> <button onclick="logout()">Log out</button></p>
+    <input id="noteText" placeholder="Write a note">
+    <button onclick="addNote()">Add</button>
+    <ul id="notesList"></ul>
+  </div>
 
   <script>
+    function showNotes(username) {
+      document.getElementById("authSection").style.display = "none";
+      document.getElementById("notesSection").style.display = "block";
+      document.getElementById("currentUser").textContent = username;
+      loadNotes();
+    }
+
+    function showAuth() {
+      document.getElementById("authSection").style.display = "block";
+      document.getElementById("notesSection").style.display = "none";
+    }
+
+    async function sendAuth(path) {
+      const response = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        document.getElementById("authMessage").textContent = "";
+        showNotes(data.username);
+      } else {
+        document.getElementById("authMessage").textContent = data.detail;
+      }
+    }
+
+    function signup() { sendAuth("/signup"); }
+    function login() { sendAuth("/login"); }
+
+    async function logout() {
+      await fetch("/logout", { method: "POST" });
+      showAuth();
+    }
+
+    async function checkLogin() {
+      const response = await fetch("/me");
+      if (response.ok) {
+        const data = await response.json();
+        showNotes(data.username);
+      } else {
+        showAuth();
+      }
+    }
+
     async function loadNotes() {
       const response = await fetch("/notes");
+      if (!response.ok) { showAuth(); return; }
       const notes = await response.json();
       const list = document.getElementById("notesList");
       list.innerHTML = "";
@@ -60,7 +121,7 @@
       loadNotes();
     }
 
-    loadNotes();
+    checkLogin();
   </script>
 </body>
 </html>

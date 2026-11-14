@@ -2,3 +2,5 @@ fastapi
 uvicorn
 sqlalchemy
 psycopg[binary]
+pwdlib[argon2]
+itsdangerous
